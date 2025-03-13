@@ -18,9 +18,3 @@ test = [
     "pytest>=8.3.5",
     "requests>=2.32.3",
 ]
-worker = [
-    "aioredis>=2.0.0",
-    "docker>=7.1.0",
-    "RestrictedPython>=5.1.1",
-]
-
