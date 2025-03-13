@@ -13,13 +13,15 @@ redis_client = redis.Redis(host=REDIS_HOST, port=6379, db=0)
 
 class CodeInput(BaseModel):
     code: str
+    language: str = "python" | "java" | "C" | "C++"
+    input: str = ""
 
 @app.post("/execute")
 def execute_code(code_input: CodeInput):
     task_id = str(uuid.uuid4())  # 실행 요청의 고유 ID
-    task_data = {"task_id": task_id, "code": code_input.code}
+    task_data = {"task_id": task_id, "code": code_input.code, "input": code_input.input}
     
-    redis_client.lpush("code_queue", json.dumps(task_data))  # Queue에 추가
+    redis_client.lpush(f"{code_input.language}_code_queue", json.dumps(task_data))  # Queue에 추가
     
     return {"task_id": task_id, "status": "queued"}
 
