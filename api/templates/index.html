@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Execution</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #editor { width: 100%; height: 300px; border: 1px solid #ccc; }
+        select, button, textarea { margin-top: 10px; display: block; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h2>온라인 코드 실행기</h2>
+    
+    <label for="language">언어 선택:</label>
+    <select id="language" onchange="changeEditorMode()">
+        <option value="python">Python</option>
+        <option value="java">Java</option>
+        <option value="C">C</option>
+        <option value="C++">C++</option>
+    </select>
+    
+    <label for="editor">코드 입력:</label>
+    <div id="editor"></div>
+    
+    <label for="input">입력값 (줄바꿈으로 여러 줄 입력 가능):</label>
+    <textarea id="input"></textarea>
+    
+    <button onclick="executeCode()">코드 실행</button>
+    
+    <h3>실행 결과:</h3>
+    <pre id="output">여기에 실행 결과가 표시됩니다.</pre>
+
+    <script>
+        // Ace Editor 설정
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai"); // 테마 설정 (다크 모드)
+        editor.setOptions({
+            fontSize: "14px",
+            wrap: true,
+            showPrintMargin: false
+        });
+
+        // 언어별 기본 코드 설정
+        const exampleCodes = {
+            python: `print("Hello, World!")\nnum = int(input("Enter a number: "))\nprint(f"Number squared: {num * num}")`,
+            java: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}`,
+            C: `#include <stdio.h>\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}`,
+            "C++": `#include <iostream>\nusing namespace std;\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}`
+        };
+
+        // 초기값 설정
+        editor.session.setMode("ace/mode/python");
+        editor.setValue(exampleCodes["python"]);
+
+        function changeEditorMode() {
+            const language = document.getElementById("language").value;
+            let mode = "python";
+            if (language === "java") mode = "java";
+            else if (language === "C" || language === "C++") mode = "c_cpp";
+            editor.session.setMode("ace/mode/" + mode);
+
+            // 해당 언어의 기본 코드 설정
+            editor.setValue(exampleCodes[language]);
+        }
+
+        async function executeCode() {
+            const language = document.getElementById("language").value;
+            const code = editor.getValue();
+            const input = document.getElementById("input").value;
+            const outputElement = document.getElementById("output");
+
+            outputElement.innerText = "코드 실행 중...";
+
+            // 실행 요청 보내기
+            const response = await fetch("/execute", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code, language, input })
+            });
+
+            const data = await response.json();
+            const taskId = data.task_id;
+
+            // 실행 결과 가져오기
+            while (true) {
+                await new Promise(resolve => setTimeout(resolve, 1000));  // 1초 대기
+                const resultResponse = await fetch(`/result/${taskId}`);
+                const resultData = await resultResponse.json();
+
+                if (resultData.status !== "pending") {
+                    outputElement.innerText = "출력:\n" + resultData.output + "\n\n오류:\n" + resultData.error;
+                    break;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

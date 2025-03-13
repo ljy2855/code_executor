@@ -8,16 +8,57 @@ services:
       - "8000:8000"
     depends_on:
       - redis
+      - c_execute_worker
+      - cpp_execute_worker
+      - python_execute_worker
+      - java_execute_worker
     environment:
       - REDIS_HOST=redis
 
-  worker:
-    build: worker/
-    container_name: excution_worker
+  c_execute_worker:
+    build: 
+      context: worker/
+      dockerfile: Dockerfile
+      target: c-worker
+    container_name: c_excutor
     depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
+
+  cpp_execute_worker:
+    build: 
+      context: worker/
+      dockerfile: Dockerfile
+      target: cpp-worker
+    container_name: cpp_excutor
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+  
+  python_execute_worker:
+    build: 
+      context: worker/
+      dockerfile: Dockerfile
+      target: python-worker
+    container_name: python_excutor
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+
+  java_execute_worker:
+    build:
+      context: worker/
+      dockerfile: Dockerfile
+      target: java-worker
+    container_name: java_excutor
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+  
 
   redis:
     image: redis:latest

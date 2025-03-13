@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import redis
 import uuid
@@ -11,9 +13,11 @@ app = FastAPI()
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 redis_client = redis.Redis(host=REDIS_HOST, port=6379, db=0)
 
+templates = Jinja2Templates(directory="templates")
+
 class CodeInput(BaseModel):
     code: str
-    language: str = "python" | "java" | "C" | "C++"
+    language: str 
     input: str = ""
 
 @app.post("/execute")
@@ -31,3 +35,8 @@ def get_result(task_id: str):
     if result:
         return json.loads(result)
     return {"task_id": task_id, "status": "pending"}
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_html(request: Request):
+    """템플릿 렌더링하여 HTML 페이지 제공"""
+    return templates.TemplateResponse("index.html", {"request": request})

@@ -4,8 +4,23 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = [
-    "fastapi>=0.115.11",
+dependencies = [  
     "redis>=5.2.1",
-    "uvicorn>=0.34.0",
 ]
+
+[dependency-groups]
+api = [
+    "fastapi>=0.68.0",
+    "uvicorn>=0.14.0",
+
+]
+test = [
+    "pytest>=8.3.5",
+    "requests>=2.32.3",
+]
+worker = [
+    "aioredis>=2.0.0",
+    "docker>=7.1.0",
+    "RestrictedPython>=5.1.1",
+]
+
